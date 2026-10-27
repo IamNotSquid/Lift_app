@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d0d0d;--surface:#161616;--card:#1e1e1e;--border:#2a2a2a;
+  --accent:#c8f045;--accent2:#ff6b35;--text:#f0f0f0;--muted:#666;
+  --red:#ff4444;--green:#4caf50;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;padding-bottom:90px}
+h1,h2,h3{font-family:'Syne',sans-serif}
+
+/* NAV */
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:14px 4px 12px;background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:color .2s;min-height:56px}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:24px;height:24px;stroke-width:1.8}
+
+/* HEADER */
+.page-header{padding:52px 20px 14px;border-bottom:1px solid var(--border)}
+.page-header h1{font-size:28px;font-weight:800;letter-spacing:-1px}
+.page-header .sub{color:var(--muted);font-size:11px;margin-top:4px}
+
+/* SCREENS */
+.screen{display:none;animation:fadeIn .2s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:10px;border:none;font-family:'DM Mono',monospace;font-size:14px;cursor:pointer;font-weight:500;transition:all .1s;min-height:48px}
+.btn-accent{background:var(--accent);color:#0d0d0d}
+.btn-accent:active{transform:scale(.97);opacity:.9}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:active{background:var(--card)}
+.btn-danger{background:transparent;color:var(--red);border:1px solid #333}
+.btn-sm{padding:10px 16px;font-size:12px;min-height:42px}
+.btn-full{width:100%}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 16px}
+
+/* STEPPER — the main input widget */
+.stepper{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;height:52px}
+.stepper-btn{width:52px;height:52px;min-width:52px;background:none;border:none;color:var(--text);font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s;flex-shrink:0}
+.stepper-btn:active{background:var(--border)}
+.stepper-val{flex:1;text-align:center;font-size:18px;font-weight:500;color:var(--text);font-family:'DM Mono',monospace;min-width:40px}
+.stepper-unit{font-size:11px;color:var(--muted);padding-right:10px;align-self:center}
+
+/* STEPPER LABEL */
+.stepper-wrap{margin-bottom:16px}
+.stepper-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
+/* TAG / BADGE */
+.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:500;background:var(--border);color:var(--muted)}
+.tag.strength{background:#1a2a0a;color:var(--accent)}
+.tag.hiit{background:#2a1505;color:var(--accent2)}
+
+/* HOME */
+#home .hero{padding:52px 20px 20px;border-bottom:1px solid var(--border)}
+#home .hero .greeting{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+#home .hero h1{font-size:36px;font-weight:800;letter-spacing:-2px;line-height:1}
+#home .hero .streak{margin-top:16px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+#home .hero .streak span{color:var(--accent);font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-cell{background:var(--bg);padding:16px 20px}
+.stat-cell .val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent)}
+.stat-cell .lbl{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.recent-header{padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+.recent-header h3{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.log-item{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;min-height:60px}
+.log-item .name{font-size:14px;font-weight:500}
+.log-item .meta{font-size:11px;color:var(--muted);margin-top:3px}
+.log-item .right{text-align:right;font-size:11px;color:var(--muted)}
+
+/* TABS */
+#log-screen .tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
+.tab{padding:16px 18px;background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;min-height:52px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* EXERCISE BLOCK */
+.exercise-block{background:var(--card);border:1px solid var(--border);border-radius:14px;margin:12px 16px;overflow:hidden}
+.ex-header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);min-height:56px}
+.ex-header .ex-name{font-size:14px;font-weight:500;flex:1}
+.ex-remove{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:8px 12px;margin:-8px -8px -8px 0;min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center}
+.ex-body{padding:14px 16px}
+
+/* SET ROW — redesigned for thumbs */
+.set-row{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;padding:12px 14px;background:var(--surface)}
+.set-row-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.set-num-badge{background:var(--border);color:var(--muted);font-size:11px;border-radius:6px;padding:4px 10px;flex-shrink:0;font-weight:500}
+.set-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.set-input-group{}
+.set-input-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+
+/* RPE RATING */
+.rpe-wrap{margin-top:4px}
+.rpe-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rpe-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.rpe-hint{font-size:10px;color:var(--muted)}
+.rpe-btns{display:flex;gap:6px}
+.rpe-btn{flex:1;height:44px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.rpe-btn .rpe-num{font-size:15px;font-weight:500}
+.rpe-btn .rpe-emoji{font-size:14px}
+.rpe-btn:active{transform:scale(.95)}
+.rpe-btn.selected-1{background:#1a2a0a;border-color:var(--accent);color:var(--accent)}
+.rpe-btn.selected-2{background:#1a2a0a;border-color:var(--accent);color:var(--accent)}
+.rpe-btn.selected-3{background:#2a2000;border-color:#f0c040;color:#f0c040}
+.rpe-btn.selected-4{background:#2a1505;border-color:var(--accent2);color:var(--accent2)}
+.rpe-btn.selected-5{background:#2a0505;border-color:var(--red);color:var(--red)}
+.set-remove-row{display:flex;justify-content:flex-end;margin-top:6px}
+.remove-set-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:6px 0;min-height:36px;display:flex;align-items:center;gap:4px}
+
+/* progression badge */
+.prog-badge{font-size:10px;padding:3px 8px;border-radius:4px;margin-left:8px;font-weight:500;flex-shrink:0}
+.prog-badge.baseline{background:#1a2a0a;color:var(--accent)}
+.prog-badge.up{background:#2a1505;color:var(--accent2)}
+.prog-badge.prog{background:var(--border);color:var(--muted)}
+.pr-note{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* HIIT ACTIVITY PICKER */
+.activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.activity-grid .activity-btn:last-child:nth-child(odd){grid-column:1/-1}
+.activity-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:14px 10px;cursor:pointer;text-align:center;min-height:52px;transition:all .1s}
+.activity-btn.selected{background:#1a2a0a;border-color:var(--accent);color:var(--accent)}
+.activity-btn:active{transform:scale(.97)}
+
+/* ROUTINES */
+.routine-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin:12px 16px;overflow:hidden}
+.routine-card .r-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;min-height:60px}
+.routine-card h3{font-size:16px;font-weight:700;font-family:'Syne',sans-serif}
+.routine-card .r-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.routine-card .r-body{padding:14px 16px}
+.ex-pill{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;margin:3px;color:var(--muted)}
+.start-routine-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:14px;background:var(--accent);color:#0d0d0d;border:none;border-radius:10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px;min-height:50px}
+.start-routine-btn:active{opacity:.9;transform:scale(.98)}
+
+/* TIMER */
+#timer-screen .timer-wrap{padding:30px 20px 20px;text-align:center}
+.big-time{font-family:'Syne',sans-serif;font-size:88px;font-weight:800;letter-spacing:-4px;line-height:1;color:var(--accent);transition:color .3s}
+.big-time.rest{color:var(--accent2)}
+.big-time.done{color:var(--green)}
+.round-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.phase-label{font-size:22px;font-weight:700;font-family:'Syne',sans-serif;margin-top:8px}
+.timer-controls{display:flex;gap:12px;justify-content:center;margin-top:24px}
+.timer-controls .btn{min-width:100px;font-size:16px;padding:16px 24px;min-height:56px}
+.timer-settings{padding:16px 16px 0}
+.timer-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.preset-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:12px 14px;cursor:pointer;min-height:46px}
+.preset-btn.active{background:var(--accent);color:#0d0d0d;border-color:var(--accent)}
+.timer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex;animation:fadeIn .2s}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:88vh;overflow-y:auto;border-top:1px solid var(--border);padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:var(--card);border:none;color:var(--text);font-size:16px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ex-option{padding:16px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:56px;background:var(--card)}
+.ex-option:active{background:var(--border)}
+.ex-option .ex-opt-name{font-size:14px}
+.ex-option .ex-opt-type{font-size:11px;color:var(--muted)}
+
+/* TEXT INPUT (only used for routine name) */
+input[type=text],select{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:14px 14px;width:100%;outline:none;min-height:52px}
+input[type=text]:focus,select:focus{border-color:var(--accent)}
+.field{margin-bottom:14px}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+select option{background:var(--surface)}
+
+/* MISC */
+.empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px}
+.mt12{margin-top:12px}
+.section-gap{padding:12px 16px}
+.divider-pad{padding:0 16px}
+
+/* HOW-TO BUBBLE */
+.howto-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;cursor:pointer;margin-left:8px;flex-shrink:0;white-space:nowrap;min-height:26px}
+.howto-btn:active{background:var(--border)}
+.howto-bubble{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:10px 16px 0;font-size:13px;line-height:1.7;color:var(--text);position:relative}
+.howto-bubble.open{display:block;animation:fadeIn .18s ease}
+.howto-bubble::before{content:'';position:absolute;top:-7px;left:20px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--border);border-top:1px solid var(--border);transform:rotate(45deg)}
+.howto-bubble h4{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.howto-bubble ol{padding-left:18px;margin:0}
+.howto-bubble li{margin-bottom:5px}
+.howto-bubble .howto-tip{margin-top:10px;font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)}
+
+/* SET CHECK-OFF — compact radio row */
+.set-row-main{display:flex;align-items:center;gap:10px}
+.set-radio{width:28px;height:28px;min-width:28px;border-radius:50%;border:2px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.set-radio.done{background:var(--accent);border-color:var(--accent)}
+.set-radio.done::after{content:'✓';font-size:13px;color:#0d0d0d;font-weight:700}
+.set-row.done-row{opacity:0.55}
+
+/* SUPERSET — thick left border + tinted card */
+.superset-group{border-radius:14px;margin:12px 16px;overflow:hidden;border:2px solid var(--accent);box-shadow:0 0 0 1px #2a3a0a}
+.superset-label{padding:9px 14px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:#0d0d0d;background:var(--accent);display:flex;align-items:center;justify-content:space-between}
+.superset-label .ss-ungroup{background:rgba(0,0,0,.18);border:none;color:#0d0d0d;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:3px 8px;border-radius:4px}
+.superset-inner{}
+.superset-inner .exercise-block{margin:0;border-radius:0;border:none;border-bottom:2px solid #2a3a0a;background:#111a05}
+.superset-inner .exercise-block:last-child{border-bottom:none}
+.exercise-block .superset-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;cursor:pointer;margin-left:6px;flex-shrink:0;white-space:nowrap;min-height:26px}
+.exercise-block .superset-btn:active{background:var(--border)}
+
+/* DRAG HANDLE + REORDER */
+.drag-handle{width:36px;height:100%;min-height:56px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--muted);font-size:16px;flex-shrink:0;touch-action:none}
+.drag-handle:active{cursor:grabbing}
+.exercise-block.dragging{opacity:0.4;border:2px dashed var(--accent)}
+.exercise-block.drag-over{border-top:3px solid var(--accent);border-radius:14px}
+
+/* REORDER MODAL */
+.reorder-modal-list{}
+.reorder-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface);min-height:56px;cursor:grab;touch-action:none}
+.reorder-item.dragging{opacity:0.4;background:var(--card)}
+.reorder-item.drag-over-item{border-top:3px solid var(--accent)}
+.reorder-item .ri-handle{color:var(--muted);font-size:18px;flex-shrink:0}
+.reorder-item .ri-name{font-size:13px;flex:1}
+.reorder-item .ri-ss{font-size:10px;padding:2px 8px;background:#1a2a0a;color:var(--accent);border-radius:4px}
+
+/* SAVE BUTTON STATE */
+.save-btn-wrap{padding:12px 16px;display:flex;gap:10px}
+
+/* HIIT SET TIMER */
+.set-timer-wrap{display:flex;align-items:center;gap:8px;flex:1}
+.set-timer-display{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);min-width:52px;text-align:center}
+.set-timer-display.running{color:var(--accent2)}
+.set-timer-display.done-t{color:var(--green)}
+.timer-start-btn{height:44px;padding:0 14px;border-radius:8px;border:1px solid var(--accent);background:none;color:var(--accent);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.timer-start-btn.running{border-color:var(--accent2);color:var(--accent2)}
+.timer-start-btn.done-t{border-color:var(--green);color:var(--green)}
+.hiit-tab-label{padding:10px 16px 2px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div class="hero">
+    <div class="greeting">Good work. Stay consistent.</div>
+    <h1>LIFT</h1>
+    <div class="streak">🔥 <span id="streak-count">0</span> day streak</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-cell"><div class="val" id="stat-total">0</div><div class="lbl">workouts</div></div>
+    <div class="stat-cell"><div class="val" id="stat-volume">0</div><div class="lbl">lbs lifted</div></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-cell"><div class="val" id="stat-week">0</div><div class="lbl">this week</div></div>
+    <div class="stat-cell"><div class="val" id="stat-prs">0</div><div class="lbl">PRs set</div></div>
+  </div>
+  <div class="recent-header">
+    <h3>Recent</h3>
+    <button class="btn btn-accent btn-sm" onclick="showScreen('log-screen')">+ Log workout</button>
+  </div>
+  <div id="recent-list"></div>
+</div>
+
+<!-- LOG -->
+<div id="log-screen" class="screen">
+  <div class="page-header"><h1>LOG</h1><div class="sub" id="log-date"></div></div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('strength')">Strength</button>
+    <button class="tab" onclick="switchTab('hiit')">Other Activity</button>
+  </div>
+
+  <div id="log-tab-label" class="hiit-tab-label">Strength — check off each set as you go</div>
+
+  <!-- STRENGTH TAB -->
+  <div id="tab-strength" class="tab-content active">
+    <div id="exercises-container"></div>
+    <div class="save-btn-wrap">
+      <button class="btn btn-outline" style="flex:1" onclick="openExModal()">+ Exercise</button>
+      <button class="btn btn-accent" style="flex:1" id="save-btn" onclick="saveWorkout()">Save</button>
+    </div>
+  </div>
+
+
+  <!-- OTHER ACTIVITY TAB -->
+  <div id="tab-hiit" class="tab-content">
+    <div class="card">
+      <div class="stepper-label" style="margin-bottom:10px">What did you do?</div>
+      <div class="activity-grid" id="activity-grid">
+        <button class="activity-btn" onclick="selectActivity(this,'Running')">🏃 Running</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Cycling')">🚴 Cycling</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Swimming')">🏊 Swimming</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Softball')">⚾ Softball</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Soccer')">⚽ Soccer</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Basketball')">🏀 Basketball</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Hiking')">🥾 Hiking</button>
+        <button class="activity-btn" onclick="selectActivity(this,'Other')">✏️ Other</button>
+      </div>
+      <input type="text" id="hiit-activity-custom" placeholder="What activity?" style="display:none;margin-top:10px">
+
+      <div style="height:16px"></div>
+      <div class="stepper-label">Duration</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div class="stepper" style="flex:1">
+          <button class="stepper-btn" onclick="stepHiit('duration',-5)">−</button>
+          <div class="stepper-val" id="hiit-duration-val">30</div>
+          <div class="stepper-unit">min</div>
+          <button class="stepper-btn" onclick="stepHiit('duration',5)">+</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">or</div>
+        <input type="number" id="hiit-duration-manual" placeholder="min" min="1" max="600"
+          style="width:80px;height:52px;text-align:center;font-size:18px;font-weight:500;flex-shrink:0"
+          oninput="hiitManualDuration(this.value)">
+      </div>
+
+      <div class="stepper-wrap" style="margin-bottom:4px">
+        <div class="rpe-label-row"><div class="rpe-lbl">How did it feel?</div></div>
+        <div class="rpe-btns">
+          <button class="rpe-btn" onclick="selectHiitRPE(this,1)"><span class="rpe-num">1</span><span class="rpe-emoji">😴</span></button>
+          <button class="rpe-btn" onclick="selectHiitRPE(this,2)"><span class="rpe-num">2</span><span class="rpe-emoji">😊</span></button>
+          <button class="rpe-btn" onclick="selectHiitRPE(this,3)"><span class="rpe-num">3</span><span class="rpe-emoji">😤</span></button>
+          <button class="rpe-btn" onclick="selectHiitRPE(this,4)"><span class="rpe-num">4</span><span class="rpe-emoji">🥵</span></button>
+          <button class="rpe-btn" onclick="selectHiitRPE(this,5)"><span class="rpe-num">5</span><span class="rpe-emoji">💀</span></button>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted);padding:0 2px">
+          <span>too easy</span><span>max effort</span>
+        </div>
+      </div>
+      <button class="btn btn-accent btn-full mt12" onclick="saveHIIT()">Log activity</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTINES -->
+<div id="routines-screen" class="screen">
+  <div class="page-header"><h1>ROUTINES</h1><div class="sub">Tap to start a routine</div></div>
+  <div id="routines-list"></div>
+  <div class="section-gap"><button class="btn btn-outline btn-full" onclick="openRoutineModal()">+ Create routine</button></div>
+</div>
+
+
+
+<!-- NAV -->
+<nav>
+  <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" onclick="showScreen('routines-screen')" id="nav-routines">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Routines
+  </button>
+  <button class="nav-btn" onclick="showScreen('log-screen')" id="nav-log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Log
+  </button>
+
+</nav>
+
+<!-- EXERCISE PICKER MODAL -->
+<div class="modal-overlay" id="ex-modal">
+  <div class="modal">
+    <h2>Add exercise <button class="modal-close" onclick="closeModal('ex-modal')">✕</button></h2>
+    <div style="margin-bottom:14px"><input type="text" id="ex-search" placeholder="Search or type custom…" oninput="filterExercises()"></div>
+    <div id="ex-list"></div>
+  </div>
+</div>
+
+<!-- ROUTINE BUILDER MODAL -->
+<div class="modal-overlay" id="routine-modal">
+  <div class="modal">
+    <h2>New routine <button class="modal-close" onclick="closeModal('routine-modal')">✕</button></h2>
+    <div class="field"><label>Routine name</label><input type="text" id="r-name" placeholder="e.g. Push day"></div>
+    <div class="field"><label>Type</label>
+      <select id="r-type"><option value="strength">Strength</option><option value="hiit">HIIT / Bodyweight</option></select>
+    </div>
+    <div style="margin-bottom:10px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Exercises</div>
+    <div id="r-exercises-container" style="margin-bottom:12px"></div>
+    <button class="btn btn-outline btn-full" style="margin-bottom:12px" onclick="openExModalForRoutine()">+ Add exercise</button>
+    <button class="btn btn-accent btn-full" onclick="saveRoutine()">Save routine</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────
+const EXERCISES = [
+  {name:'Barbell bench press',cat:'Chest',type:'barbell'},
+  {name:'Dumbbell bench press',cat:'Chest',type:'dumbbell'},
+  {name:'Dumbbell flyes',cat:'Chest',type:'dumbbell'},
+  {name:'Push-ups',cat:'Chest',type:'bodyweight'},
+  {name:'Barbell deadlift',cat:'Back',type:'barbell'},
+  {name:'Barbell bent-over row',cat:'Back',type:'barbell'},
+  {name:'Dumbbell row',cat:'Back',type:'dumbbell'},
+  {name:'Pull-ups',cat:'Back',type:'bodyweight'},
+  {name:'Chin-ups',cat:'Back',type:'bodyweight'},
+  {name:'Lat pulldown',cat:'Back',type:'cable'},
+  {name:'Seated cable row',cat:'Back',type:'cable'},
+  {name:'Barbell overhead press',cat:'Shoulders',type:'barbell'},
+  {name:'Dumbbell shoulder press',cat:'Shoulders',type:'dumbbell'},
+  {name:'Dumbbell lateral raises',cat:'Shoulders',type:'dumbbell'},
+  {name:'Dumbbell front raises',cat:'Shoulders',type:'dumbbell'},
+  {name:'Dumbbell Arnold press',cat:'Shoulders',type:'dumbbell'},
+  {name:'Cable face pulls',cat:'Shoulders',type:'cable'},
+  {name:'Barbell curl',cat:'Arms',type:'barbell'},
+  {name:'Dumbbell curl',cat:'Arms',type:'dumbbell'},
+  {name:'Hammer curl',cat:'Arms',type:'dumbbell'},
+  {name:'Incline dumbbell curl',cat:'Arms',type:'dumbbell'},
+  {name:'Barbell skull crushers',cat:'Arms',type:'barbell'},
+  {name:'Tricep rope pushdown',cat:'Arms',type:'cable'},
+  {name:'Overhead tricep rope extension',cat:'Arms',type:'cable'},
+  {name:'Barbell back squat',cat:'Legs',type:'barbell'},
+  {name:'Barbell front squat',cat:'Legs',type:'barbell'},
+  {name:'Barbell Romanian deadlift',cat:'Legs',type:'barbell'},
+  {name:'Dumbbell goblet squat',cat:'Legs',type:'dumbbell'},
+  {name:'Dumbbell lunges',cat:'Legs',type:'dumbbell'},
+  {name:'Dumbbell step-ups',cat:'Legs',type:'dumbbell'},
+  {name:'Dumbbell calf raises',cat:'Legs',type:'dumbbell'},
+  {name:'Barbell calf raises',cat:'Legs',type:'barbell'},
+  {name:'Bodyweight squat',cat:'Legs',type:'bodyweight'},
+  {name:'Bulgarian split squat',cat:'Legs',type:'bodyweight'},
+  {name:'Plank',cat:'Core',type:'bodyweight'},
+  {name:'Hanging leg raise',cat:'Core',type:'bodyweight'},
+  {name:'Hanging knee raise',cat:'Core',type:'bodyweight'},
+  {name:'Dead bug',cat:'Core',type:'bodyweight'},
+  {name:'Dumbbell Russian twist',cat:'Core',type:'dumbbell'},
+  {name:'Cable crunch',cat:'Core',type:'cable'},
+  {name:'Burpees',cat:'HIIT',type:'bodyweight'},
+  {name:'Mountain climbers',cat:'HIIT',type:'bodyweight'},
+  {name:'Jump squats',cat:'HIIT',type:'bodyweight'},
+  {name:'Push-up variations',cat:'HIIT',type:'bodyweight'},
+];
+
+const DB_KEY='lift_app_v1';
+let db=JSON.parse(localStorage.getItem(DB_KEY)||'{"logs":[],"routines":[],"prs":{}}');
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+
+// ─── WORKOUT STATE ────────────────────────────────────────────
+let currentExercises=[];
+let currentRoutineType='strength';
+let addingForRoutine=false;
+let currentRoutineExercises=[];
+let hiitActivity='';
+let hiitRPE=0;
+const hiitVals={duration:30};
+
+// ─── PROGRESSIVE OVERLOAD ENGINE ─────────────────────────────
+const BASELINES={
+  'shoulder':      [25,20,30,5],
+  'bicep':         [25,20,30,5],
+  'tricep':        [35,30,40,5],
+  'barbell_chest': [80,70,90,5],
+  'db_chest':      [35,30,40,5],
+  'back_barbell':  [95,85,115,5],
+  'back_cable':    [50,40,65,5],
+  'back_db':       [35,30,45,5],
+  'back_bw':       [0,0,0,0],
+  'legs_barbell':  [95,85,135,5],
+  'legs_db':       [35,30,50,5],
+  'legs_bw':       [0,0,0,0],
+  'arms_cable':    [35,30,45,5],
+  'core':          [0,0,0,0],
+  'hiit':          [0,0,0,0],
+};
+
+function getBaselineKey(name){
+  const n=name.toLowerCase();
+  if(n.includes('lateral raise')||n.includes('front raise')||n.includes('shoulder press')||n.includes('overhead press')||n.includes('arnold')||n.includes('face pull')) return 'shoulder';
+  if(n.includes('curl')&&!n.includes('skull')) return 'bicep';
+  if(n.includes('skull')) return 'tricep';
+  if(n.includes('tricep rope')||n.includes('tricep pushdown')||n.includes('overhead tricep')) return 'arms_cable';
+  if((n.includes('bench press')||n.includes('flye'))&&n.includes('dumbbell')) return 'db_chest';
+  if(n.includes('bench press')) return 'barbell_chest';
+  if(n.includes('deadlift')||n.includes('squat')||n.includes('lunge')||n.includes('step-up')||n.includes('split squat')||n.includes('calf raise'))
+    return (n.includes('dumbbell')||n.includes('goblet')||n.includes('bodyweight'))?'legs_db':'legs_barbell';
+  if(n.includes('row')&&n.includes('barbell')) return 'back_barbell';
+  if(n.includes('lat pulldown')||n.includes('seated cable row')) return 'back_cable';
+  if(n.includes('row')&&n.includes('dumbbell')) return 'back_db';
+  if(n.includes('pull-up')||n.includes('chin-up')) return 'back_bw';
+  if(n.includes('deadlift')) return 'back_barbell';
+  if(n.includes('plank')||n.includes('leg raise')||n.includes('knee raise')||n.includes('dead bug')||n.includes('russian twist')||n.includes('cable crunch')) return 'core';
+  return 'hiit';
+}
+
+function getLastPerformance(name){
+  for(let i=db.logs.length-1;i>=0;i--){
+    const log=db.logs[i];
+    if(log.type!=='strength') continue;
+    const ex=(log.exercises||[]).find(e=>e.name===name);
+    if(ex&&ex.sets&&ex.sets.length){
+      const valid=ex.sets.filter(s=>parseFloat(s.weight)>0||parseFloat(s.reps)>0);
+      if(valid.length) return {sets:valid,date:log.date};
+    }
+  }
+  return null;
+}
+
+function roundTo5(val){return Math.round(val/5)*5}
+
+
+function getSuggestedHiitSets(name){
+  // Default: 3 sets of 40 seconds work. Adjust based on last performance if logged.
+  const last=getLastPerformance(name);
+  const defaultDur=40;
+  const defaultSets=3;
+  if(!last){
+    return Array(defaultSets).fill(null).map(()=>({duration:defaultDur,done:false,timerState:'idle',remaining:defaultDur}));
+  }
+  // If last session had duration-based sets, progress slightly
+  const lastDurs=last.sets.map(s=>parseFloat(s.duration||defaultDur));
+  const avgDur=Math.round(lastDurs.reduce((a,b)=>a+b,0)/lastDurs.length);
+  const numSets=Math.min(Math.max(last.sets.length,3),5);
+  // Progress: if all sets completed, add 5 sec up to 60s, then add a set
+  const allDone=last.sets.every(s=>s.done!==false);
+  const sugDur=avgDur>=60?60:avgDur+(allDone?5:0);
+  return Array(numSets).fill(null).map(()=>({duration:sugDur,done:false,timerState:'idle',remaining:sugDur}));
+}
+function getSuggestedSets(name){
+  const key=getBaselineKey(name);
+  const baseline=BASELINES[key];
+  const isBW=baseline[0]===0;
+  if(isBW){
+    const last=getLastPerformance(name);
+    if(!last) return [{weight:'',reps:10,rpe:0},{weight:'',reps:10,rpe:0},{weight:'',reps:10,rpe:0}];
+    const lastReps=last.sets.map(s=>parseFloat(s.reps||0));
+    const avgReps=Math.round(lastReps.reduce((a,b)=>a+b,0)/lastReps.length);
+    const allHigh=lastReps.every(r=>r>=12);
+    const sugReps=allHigh?Math.min(avgReps+1,15):avgReps||10;
+    return Array(Math.min(last.sets.length||3,4)).fill(null).map(()=>({weight:'',reps:sugReps,rpe:0,done:false}));
+  }
+  const last=getLastPerformance(name);
+  const [startW,,,inc]=baseline;
+  if(!last){
+    const w=roundTo5(startW);
+    return [{weight:w,reps:10,rpe:0},{weight:w,reps:10,rpe:0},{weight:w,reps:10,rpe:0}];
+  }
+  const lastSets=last.sets.filter(s=>parseFloat(s.reps)>0);
+  const lastWeights=lastSets.map(s=>parseFloat(s.weight)||0);
+  const lastReps=lastSets.map(s=>parseFloat(s.reps||0));
+  const topWeight=Math.max(...lastWeights);
+  const avgReps=Math.round(lastReps.reduce((a,b)=>a+b,0)/lastReps.length);
+  const allHitTop=lastReps.every(r=>r>=12);
+  const numSets=Math.min(Math.max(lastSets.length,3),4);
+  let sugWeight,sugReps;
+  if(allHitTop){sugWeight=roundTo5(topWeight+(inc||5));sugReps=8;}
+  else if(avgReps>=10){sugWeight=topWeight;sugReps=Math.min(avgReps+1,12);}
+  else{sugWeight=topWeight;sugReps=Math.max(avgReps,8);}
+  return Array(numSets).fill(null).map(()=>({weight:sugWeight,reps:sugReps,rpe:0}));
+}
+
+// ─── SCREENS ─────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const navMap={home:'nav-home','log-screen':'nav-log','routines-screen':'nav-routines','timer-screen':'nav-timer'};
+  if(navMap[id]) document.getElementById(navMap[id]).classList.add('active');
+  if(id==='home') renderHome();
+  if(id==='routines-screen') renderRoutines();
+}
+
+// ─── HOME ─────────────────────────────────────────────────────
+function renderHome(){
+  const logs=db.logs;
+  document.getElementById('stat-total').textContent=logs.length;
+  const vol=logs.reduce((a,l)=>{
+    if(l.type==='strength') return a+(l.exercises||[]).reduce((b,e)=>(e.sets||[]).reduce((c,s)=>c+(parseFloat(s.weight||0)*parseFloat(s.reps||0)),b),0);
+    return a;
+  },0);
+  document.getElementById('stat-volume').textContent=Math.round(vol);
+  const now=new Date();const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+  document.getElementById('stat-week').textContent=logs.filter(l=>new Date(l.date+'T12:00:00')>=weekStart).length;
+  document.getElementById('stat-prs').textContent=Object.keys(db.prs).length;
+  let streak=0;
+  const logDates=[...new Set(logs.map(l=>l.date))].sort().reverse();
+  let check=new Date();
+  for(let i=0;i<60;i++){
+    const d=dateStr(check);
+    if(logDates.includes(d)){streak++;check.setDate(check.getDate()-1);}
+    else if(d===dateStr(new Date())){check.setDate(check.getDate()-1);}
+    else break;
+  }
+  document.getElementById('streak-count').textContent=streak;
+  const ul=document.getElementById('recent-list');
+  const recent=logs.slice().reverse().slice(0,8);
+  if(!recent.length){ul.innerHTML='<div class="empty">💪 No workouts yet.<br>Log your first one!</div>';return;}
+  ul.innerHTML=recent.map(l=>{
+    const exStr=(l.type==='hiit'||l.type==='other')?(l.activity||'Activity'):(l.exercises||[]).map(e=>e.name).join(', ')||'';
+    const vol=l.type==='strength'?(l.exercises||[]).reduce((a,e)=>(e.sets||[]).reduce((b,s)=>b+(parseFloat(s.weight||0)*parseFloat(s.reps||0)),a),0):0;
+    const volStr=vol>0?`${Math.round(vol)} lbs`:(l.duration?`${l.duration} min`:'');
+    return `<div class="log-item"><div><div class="name">${formatDate(l.date)}</div><div class="meta">${exStr.substring(0,42)}${exStr.length>42?'…':''}</div></div><div class="right">${volStr}</div></div>`;
+  }).join('');
+}
+
+function dateStr(d){return d.toISOString().split('T')[0]}
+function formatDate(s){
+  const d=new Date(s+'T12:00:00');
+  const today=dateStr(new Date());
+  const yest=dateStr(new Date(Date.now()-86400000));
+  if(s===today) return 'Today';
+  if(s===yest) return 'Yesterday';
+  return d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
+}
+
+// ─── LOG TABS ─────────────────────────────────────────────────
+document.getElementById('log-date').textContent=new Date().toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'});
+
+function switchTab(t){
+  // 'hiit-routine' shows the strength exercise blocks under the HIIT/Cardio tab label
+  const resolvedTab=t==='hiit-routine'?'strength':t;
+  const resolvedNavTab=t==='hiit-routine'?'hiit':t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  const navBtn=document.querySelector(`.tab[onclick="switchTab('${resolvedNavTab}')"]`);
+  if(navBtn) navBtn.classList.add('active');
+  document.getElementById('tab-'+resolvedTab).classList.add('active');
+}
+
+// ─── EXERCISE RENDER ──────────────────────────────────────────
+const RPE_LABELS=['','Too easy','Feeling good','Working hard','Really tough','Max effort'];
+const RPE_EMOJI=['','😴','😊','😤','🥵','💀'];
+
+function progressionLabel(name){
+  const last=getLastPerformance(name);
+  if(!last) return '<span class="prog-badge baseline">baseline</span>';
+  const allHitTop=last.sets.map(s=>parseFloat(s.reps||0)).every(r=>r>=12);
+  if(allHitTop) return '<span class="prog-badge up">↑ weight up</span>';
+  return '<span class="prog-badge prog">progressive</span>';
+}
+
+// ─── HOW-TO LIBRARY ──────────────────────────────────────────
+const HOWTO = {
+  'Barbell bench press': {steps:['Lie flat on the bench, eyes under the bar.','Grip the bar slightly wider than shoulder-width, thumbs wrapped around.','Unrack and hold the bar over your chest with arms straight.','Lower the bar to your mid-chest in a controlled 2-3 sec descent.','Press back up in a slight arc toward the rack until arms are straight.','Keep your feet flat, upper back tight, and a slight arch in your lower back.'],tip:'Tip: think "bend the bar" to keep elbows from flaring too wide.'},
+  'Dumbbell bench press': {steps:['Sit on the bench with a dumbbell on each knee, then lie back and press them up.','Hold dumbbells at chest level, palms facing forward, elbows at ~45°.','Press both up until arms are nearly straight — don’t lock out hard.','Lower with control until elbows are just below bench level.','Keep your shoulder blades squeezed together throughout.'],tip:'Tip: dumbbells let each side work independently — great for fixing imbalances.'},
+  'Dumbbell flyes': {steps:['Lie flat, dumbbells pressed up, palms facing each other.','With a slight bend in your elbows (keep it fixed), lower the weights out to the sides in a wide arc.','Stop when you feel a stretch in your chest — upper arms roughly parallel to the floor.','Squeeze your chest to bring the dumbbells back together at the top.'],tip:'Tip: this is a stretch/squeeze movement — keep weight light and control the arc.'},
+  'Push-ups': {steps:['Start in a high plank: hands slightly wider than shoulders, body in a straight line.','Lower your chest to just above the floor, elbows at about 45° from your torso.','Press back up to the start without letting your hips sag or pike up.','Squeeze your core and glutes throughout.'],tip:'Tip: if regular push-ups are too hard, drop to your knees. Too easy? Elevate your feet.'},
+  'Barbell deadlift': {steps:['Stand with the bar over your mid-foot, feet hip-width apart.','Hinge at the hips and grab the bar just outside your legs, mixed or double overhand grip.','Take a big breath in, brace your core, and drop your hips until your shins touch the bar.','Drive your feet into the floor and push your hips forward — bar stays close to your legs the whole way up.','Stand fully tall at the top, then hinge back down with control.'],tip:'Tip: think "push the floor away" on the way up, not "pull the bar."'},
+  'Barbell bent-over row': {steps:['Stand with feet shoulder-width, hinge forward until your torso is roughly 45° to the floor.','Hold the bar with an overhand grip just outside your legs.','Brace your core — keep your back flat, not rounded.','Pull the bar into your lower chest/upper abdomen, leading with your elbows.','Lower with control and repeat.'],tip:'Tip: the row should finish at your belly button, not your chest — different muscles.'},
+  'Dumbbell row': {steps:['Place one knee and same-side hand on the bench for support.','Hold the dumbbell in the opposite hand, arm hanging straight down.','Pull the dumbbell up toward your hip, leading with your elbow.','Squeeze your lat at the top, then lower slowly.','Keep your back flat and avoid rotating your torso.'],tip:'Tip: imagine pulling your elbow to the ceiling, not just lifting the weight.'},
+  'Pull-ups': {steps:['Hang from the bar with an overhand grip, hands slightly wider than shoulders.','Start from a dead hang — arms fully extended.','Pull yourself up by driving your elbows down toward your hips.','Get your chin clearly over the bar.','Lower yourself all the way back to a dead hang — don’t shorten the range.'],tip:'Tip: crossing your feet and squeezing your glutes helps keep your body stable.'},
+  'Chin-ups': {steps:['Hang with an underhand (supinated) grip, hands shoulder-width apart.','Pull yourself up by driving your elbows back and down.','Get your chin over the bar.','Lower slowly back to a full hang.'],tip:'Tip: chin-ups hit your biceps more than pull-ups — great combo with rows.'},
+  'Lat pulldown': {steps:['Sit with your thighs under the pad, grab the bar wider than shoulder-width, overhand grip.','Lean back slightly (about 10-15°) and pull the bar down to your upper chest.','Drive your elbows down and back — squeeze your lats at the bottom.','Let the bar rise slowly back to the top with arms nearly straight.'],tip:'Tip: don’t lean way back — that turns it into a row. Stay mostly upright.'},
+  'Seated cable row': {steps:['Sit upright with feet on the footplate, knees slightly bent.','Grab the handle and start with arms extended and a slight forward lean.','Pull the handle into your abdomen, driving your elbows back past your torso.','Squeeze your shoulder blades together at the end of the pull.','Slowly extend back to the start — feel the stretch in your lats.'],tip:'Tip: avoid using your lower back to yank the weight — the pull should start with your arms and lats.'},
+  'Barbell overhead press': {steps:['Stand with feet shoulder-width, bar resting on the front of your shoulders, hands just outside shoulder-width.','Brace your core and glutes — keep your body rigid.','Press the bar straight up, pushing your head slightly forward as the bar passes your face.','Lock out at the top — bar is over the middle of your foot.','Lower back to your shoulders with control.'],tip:'Tip: don’t lean back excessively — a slight lean is fine but protect your lower back.'},
+  'Dumbbell shoulder press': {steps:['Sit or stand, dumbbells at shoulder height, palms facing forward or neutral.','Press both dumbbells up until arms are nearly straight overhead.','Lower back to shoulder height with control.','Keep your core braced — don’t arch your lower back.'],tip:'Tip: neutral grip (palms facing each other) is easier on the shoulder joint.'},
+  'Dumbbell lateral raises': {steps:['Stand holding dumbbells at your sides, slight bend in your elbows.','Raise both arms out to the sides until they are roughly parallel to the floor.','Lead with your elbows, not your wrists.','Lower slowly — don’t just drop the weight.'],tip:'Tip: lean forward very slightly and raise to just below shoulder height to keep tension on the lateral delt.'},
+  'Dumbbell front raises': {steps:['Stand holding dumbbells in front of your thighs, palms facing you.','Raise one or both arms straight in front of you to shoulder height.','Pause briefly, then lower with control.','Keep a slight bend in the elbow throughout.'],tip:'Tip: keep these light — your front delts already get a lot of work from pressing.'},
+  'Dumbbell Arnold press': {steps:['Hold dumbbells at shoulder height with palms facing you (like the top of a curl).','Press up while rotating your palms to face forward as you extend.','At the top, palms face forward, arms straight overhead.','Reverse the rotation as you lower back to start.'],tip:'Tip: the rotation is what makes this special — don’t skip it.'},
+  'Cable face pulls': {steps:['Set the cable at upper-chest to face height with a rope attachment.','Grab each end of the rope with a neutral grip, step back to create tension.','Pull the rope toward your face, hands splitting apart at the end — elbows stay high and wide.','Squeeze your rear delts and upper back at the end of the movement.','Return with control.'],tip:'Tip: great for shoulder health — prioritize this on every upper body day.'},
+  'Barbell curl': {steps:['Stand holding the bar with an underhand grip, hands shoulder-width.','Keep your upper arms pinned against your sides.','Curl the bar up toward your shoulders by bending your elbows.','Squeeze your biceps at the top.','Lower slowly — 2-3 seconds on the way down.'],tip:'Tip: don’t swing. If you’re swinging, the weight is too heavy.'},
+  'Dumbbell curl': {steps:['Stand or sit holding dumbbells at your sides, palms forward.','Curl one or both arms up toward your shoulders.','Squeeze the bicep at the top.','Lower with control.'],tip:'Tip: try alternating arms to focus on each side. Supinate (rotate) your wrist as you curl for a better contraction.'},
+  'Hammer curl': {steps:['Hold dumbbells with a neutral grip (palms facing each other).','Curl toward your shoulders without rotating your wrist.','Lower with control.'],tip:'Tip: hammer curls target the brachialis (under the bicep) and forearms — great for arm thickness.'},
+  'Incline dumbbell curl': {steps:['Set the bench to about 45-60° incline and sit back against it.','Let your arms hang straight down — this is the stretched start position.','Curl both dumbbells up, supinating as you go.','Lower fully back to the stretch.'],tip:'Tip: the incline increases the stretch on the bicep long head — great for peak development.'},
+  'Barbell skull crushers': {steps:['Lie on the bench, press the bar up over your chest, then shift it slightly back over your forehead.','Keep your upper arms fixed pointing straight up.','Bend at the elbows, lowering the bar toward your forehead (hence the name).','Stop just before it touches, then extend back up.'],tip:'Tip: keep your elbows from flaring out wide — point them at the ceiling throughout.'},
+  'Tricep rope pushdown': {steps:['Stand at the cable, grab the rope ends with a neutral grip, elbows tucked at your sides.','Push the rope down until your arms are fully extended.','At the bottom, split the rope ends apart slightly for a stronger contraction.','Let the rope rise back up slowly — feel the stretch in your triceps.'],tip:'Tip: don’t lean over the cable or use your bodyweight — keep it strict.'},
+  'Overhead tricep rope extension': {steps:['Face away from the cable (or grab the rope and turn around).','Hold the rope behind your head, elbows pointing forward.','Press the rope up and forward until arms are fully extended overhead.','Lower back behind your head with control.'],tip:'Tip: the overhead position stretches the long head of the tricep — this is the biggest portion of the muscle.'},
+  'Barbell back squat': {steps:['Position the bar across your upper traps (high bar) or rear delts (low bar).','Step back, feet shoulder-width or slightly wider, toes turned out 15-30°.','Brace your core, take a breath in, and descend — push your knees out in line with your toes.','Hit at least parallel (crease of hip below top of knee).','Drive through your whole foot to stand back up.'],tip:'Tip: "knees out" cue prevents the knees caving inward, which protects your joints.'},
+  'Barbell front squat': {steps:['Rest the bar across the front of your shoulders (front rack position) with elbows up high.','Feet shoulder-width, toes out slightly.','Descend keeping your torso more upright than a back squat.','Drive up from the bottom, keeping elbows high throughout.'],tip:'Tip: front squats demand more upper back and core than back squats — go lighter and nail the form.'},
+  'Barbell Romanian deadlift': {steps:['Hold the bar at hip level, feet hip-width, slight bend in knees.','Hinge at the hips — push them back — letting the bar slide down your thighs.','Lower until you feel a strong hamstring stretch (usually mid-shin level).','Drive your hips forward to stand back up — squeeze your glutes at the top.'],tip:'Tip: this is a hip hinge, not a squat. Keep the bar close to your legs the whole way.'},
+  'Dumbbell goblet squat': {steps:['Hold one dumbbell vertically with both hands at chest height.','Feet shoulder-width, toes out slightly.','Squat down keeping your chest up and elbows tracking inside your knees.','Drive through your heels to stand.'],tip:'Tip: a great squat for learning good depth and keeping your chest upright.'},
+  'Dumbbell lunges': {steps:['Hold a dumbbell in each hand at your sides.','Step forward with one foot, dropping your back knee toward the floor.','Your front knee should stay over your front foot — not caving in.','Push off your front foot to step back, then repeat on the other side.'],tip:'Tip: keep your torso upright throughout — don’t hunch forward.'},
+  'Dumbbell step-ups': {steps:['Hold dumbbells at your sides, stand facing a bench or box.','Step up with one foot, pressing through that heel to lift your body up.','Stand fully upright on the box, then step back down with control.','Complete all reps on one leg before switching, or alternate.'],tip:'Tip: the slower and more controlled the step-down, the more the glutes and quads work.'},
+  'Dumbbell calf raises': {steps:['Hold a dumbbell in each hand, stand with the balls of your feet on a slight elevation (or flat).','Rise up onto your toes as high as possible.','Pause briefly at the top.','Lower slowly — get a full stretch at the bottom.'],tip:'Tip: calves respond well to high reps and slow eccentrics — try 15-20 reps and a 3-second lower.'},
+  'Barbell calf raises': {steps:['Place bar across upper traps as in a squat. Stand on a weight plate or step edge for range of motion.','Rise up onto your toes as high as you can go.','Pause, then lower slowly until you feel a full calf stretch.'],tip:'Tip: keep your knees straight for gastrocnemius (upper calf) or slightly bent to emphasize the soleus.'},
+  'Bodyweight squat': {steps:['Feet shoulder-width, arms out in front for balance.','Sit back and down, keeping your chest up.','Hit at least parallel — thighs level with the floor.','Drive through your heels to stand.'],tip:'Tip: a great warm-up for squat day. Add a pause at the bottom to improve mobility.'},
+  'Bulgarian split squat': {steps:['Stand about 2 feet in front of a bench. Place one foot behind you on the bench.','Lower your back knee toward the floor, front shin stays roughly vertical.','Drive through your front heel to stand back up.','Complete all reps on one side before switching.'],tip:'Tip: this is brutally effective but humbling — start with bodyweight only, or light dumbbells.'},
+  'Plank': {steps:['Start in a forearm plank: elbows under shoulders, body in a straight line from head to heels.','Squeeze your core, glutes, and quads — don’t let your hips sag or pike.','Breathe steadily. Hold the position.'],tip:'Tip: quality beats time. A 20-second perfect plank beats a 60-second sagging one.'},
+  'Hanging leg raise': {steps:['Hang from the pull-up bar with a full dead hang, hands shoulder-width.','Keeping legs straight, raise them up until they are parallel to the floor (or higher).','Lower with control — don’t swing.'],tip:'Tip: if straight legs are too hard, bend your knees and bring them to your chest instead.'},
+  'Hanging knee raise': {steps:['Hang from the bar, arms fully extended.','Bend your knees and pull them up toward your chest.','Hold briefly at the top, then lower with control.'],tip:'Tip: the key is to tilt your pelvis at the top — that’s what actually engages your abs, not just raising your knees.'},
+  'Dead bug': {steps:['Lie on your back, arms pointing straight up, knees at 90° over your hips.','Slowly lower your right arm and left leg toward the floor simultaneously.','Stop just before they touch the floor, then return to start.','Repeat on the other side.'],tip:'Tip: press your lower back into the floor throughout — that’s the whole point of the exercise.'},
+  'Dumbbell Russian twist': {steps:['Sit on the floor, knees bent, feet slightly elevated (or flat for easier version).','Hold a dumbbell with both hands at your chest.','Lean back slightly (about 45°), brace your core.','Rotate your torso left and right, tapping the dumbbell toward the floor on each side.'],tip:'Tip: the rotation comes from your torso, not just your arms — really twist through your obliques.'},
+  'Cable crunch': {steps:['Kneel in front of the cable, rope attachment at the top.','Hold the rope at the sides of your face, elbows down.','Crunch your rib cage toward your hips — hinge at the waist, not the hips.','Hold the contraction for a moment, then slowly return to the starting position.'],tip:'Tip: don’t pull the rope with your arms — the movement is entirely from your abs bending your torso.'},
+  'Burpees': {steps:['Stand with feet shoulder-width.','Drop your hands to the floor and jump or step your feet back into a push-up position.','Perform a push-up.','Jump your feet back toward your hands.','Explode upward into a jump, arms overhead.'],tip:'Tip: the pace is the challenge — keep moving. Breathe out on the way up.'},
+  'Mountain climbers': {steps:['Start in a high plank position, core braced.','Drive one knee toward your chest, then quickly switch legs in a running motion.','Keep your hips level — don’t let them bounce up and down.'],tip:'Tip: the faster you go, the more cardio. Slower = more core focus.'},
+  'Jump squats': {steps:['Stand with feet shoulder-width.','Descend into a squat — at least to parallel.','Explode upward, leaving the floor entirely.','Land softly, bending your knees to absorb the impact, and go straight into the next rep.'],tip:'Tip: land as quietly as you can — that forces you to use your muscles as shock absorbers instead of your joints.'},
+  'Push-up variations': {steps:['Choose your variation: standard, wide, narrow/diamond, or decline.','Standard: hands just wider than shoulders, body straight, lower chest to floor.','Wide: hands wider than standard — more chest focus.','Diamond: hands together under your chest — more tricep focus.','Decline: feet elevated — hits upper chest more.'],tip:'Tip: cycle through variations to hit different parts of the chest and triceps.'},
+};
+
+function getHowTo(name){
+  const h=HOWTO[name];
+  if(!h) return '<div style="color:var(--muted);font-size:13px">No guide available for this exercise yet.</div>';
+  return `<h4>${name}</h4><ol>${h.steps.map(s=>`<li>${s}</li>`).join('')}</ol><div class="howto-tip">💡 ${h.tip}</div>`;
+}
+
+function toggleHowTo(ei){
+  const bubble=document.getElementById('howto-'+ei);
+  if(bubble) bubble.classList.toggle('open');
+}
+
+function allSetsChecked(){
+  return currentExercises.length>0 && currentExercises.every(ex=>ex.sets.every(s=>s.done));
+}
+
+function updateSaveBtn(){
+  const btn=document.getElementById('save-btn');
+  if(!btn) return;
+  if(allSetsChecked()){
+    btn.textContent='Save workout';
+    btn.style.opacity='1';
+    btn.style.pointerEvents='auto';
+  } else {
+    const total=currentExercises.reduce((a,ex)=>a+ex.sets.length,0);
+    const done=currentExercises.reduce((a,ex)=>a+ex.sets.filter(s=>s.done).length,0);
+    btn.textContent=total>0?`${done}/${total} sets done`:'Save workout';
+    btn.style.opacity='0.45';
+    btn.style.pointerEvents='none';
+  }
+}
+
+function checkSet(ei,si){
+  const s=currentExercises[ei].sets[si];
+  s.done=!s.done;
+  // update radio button class and row fade in-place (no full re-render)
+  const radio=document.getElementById('checkbtn-'+ei+'-'+si);
+  if(radio) radio.className='set-radio'+(s.done?' done':'');
+  const row=document.getElementById('setrow-'+ei+'-'+si);
+  if(row) row.className='set-row'+(s.done?' done-row':'');
+  updateSaveBtn();
+}
+
+// Superset helpers
+function getSupersetId(ei){
+  return currentExercises[ei]?currentExercises[ei].supersetId||null:null;
+}
+
+function groupAsSuperset(ei){
+  // Group this exercise with the NEXT non-superset exercise below it
+  const next=currentExercises[ei+1];
+  if(!next){alert('Move this exercise up, or add another below it to create a superset.');return;}
+  if(next.supersetId){alert('The exercise below is already in a superset. Reorder first.');return;}
+  const id='ss-'+Date.now();
+  currentExercises[ei].supersetId=id;
+  next.supersetId=id;
+  renderExercises();
+}
+
+function addToSuperset(ei){
+  // Join the adjacent superset (prefer the one above)
+  const prevSS=ei>0?currentExercises[ei-1].supersetId:null;
+  const nextSS=ei<currentExercises.length-1?currentExercises[ei+1].supersetId:null;
+  const ssId=prevSS||nextSS;
+  if(!ssId) return;
+  currentExercises[ei].supersetId=ssId;
+  renderExercises();
+}
+
+function ungroupSuperset(ssId){
+  currentExercises.forEach(ex=>{if(ex.supersetId===ssId) delete ex.supersetId;});
+  renderExercises();
+}
+
+function renderExercises(){
+  const c=document.getElementById('exercises-container');
+  if(!currentExercises.length){
+    c.innerHTML='<div class="empty">No exercises yet.<br>Tap + Exercise below.</div>';
+    updateSaveBtn();return;
+  }
+
+  // Build superset groups — collect unique IDs in order
+  const ssLetters={};
+  const ssOrder=[];
+  let letterCode=65; // A
+  currentExercises.forEach(ex=>{
+    if(ex.supersetId&&!ssLetters[ex.supersetId]){
+      ssLetters[ex.supersetId]=String.fromCharCode(letterCode++);
+      ssOrder.push(ex.supersetId);
+    }
+  });
+
+  let html='';
+  const rendered=new Set();
+
+  currentExercises.forEach((ex,ei)=>{
+    if(ex.supersetId){
+      if(rendered.has(ex.supersetId)) return; // already output
+      rendered.add(ex.supersetId);
+      const ssId=ex.supersetId;
+      const letter=ssLetters[ssId];
+      const members=currentExercises.map((e,i)=>({e,i})).filter(({e})=>e.supersetId===ssId);
+      html+=`<div class="superset-group">
+        <div class="superset-label">
+          <span>⚡ Superset ${letter} — cycle these ${members.length} back to back</span>
+          <button class="ss-ungroup" onclick="ungroupSuperset('${ssId}')">ungroup</button>
+        </div>
+        <div class="superset-inner">
+          ${members.map(({e,i})=>renderExerciseBlock(e,i,letter)).join('')}
+        </div>
+      </div>`;
+    } else {
+      html+=renderExerciseBlock(ex,ei,null);
+    }
+  });
+
+  c.innerHTML=html;
+  updateSaveBtn();
+}
+
+function renderExerciseBlock(ex,ei,ssLetter){
+  const isBW=BASELINES[getBaselineKey(ex.name)][0]===0;
+  const pr=db.prs[ex.name];
+  // Superset button logic:
+  // - Not in a superset: show "+ superset" (will open picker)
+  // - Adjacent to a superset (immediately above or below): show "+ add to superset"
+  // - Already in a superset: no button (managed at group level)
+  let ssBtn='';
+  if(!ex.supersetId && currentExercises.length>1){
+    // Check if immediately adjacent to a superset
+    const prevSS=ei>0?currentExercises[ei-1].supersetId:null;
+    const nextSS=ei<currentExercises.length-1?currentExercises[ei+1].supersetId:null;
+    const adjSS=prevSS||nextSS;
+    if(adjSS){
+      ssBtn=`<button class="superset-btn" onclick="addToSuperset(${ei})">+ add to superset</button>`;
+    } else {
+      ssBtn=`<button class="superset-btn" onclick="groupAsSuperset(${ei})">+ superset</button>`;
+    }
+  }
+  return `<div class="exercise-block" id="exblock-${ei}"
+    draggable="true"
+    ondragstart="exDragStart(event,${ei})"
+    ondragover="exDragOver(event,${ei})"
+    ondrop="exDrop(event,${ei})"
+    ondragend="exDragEnd()"
+    ontouchstart="exTouchStart(event,${ei})"
+    ontouchmove="exTouchMove(event)"
+    ontouchend="exTouchEnd(event,${ei})">
+    <div class="ex-header">
+      <div class="drag-handle" aria-label="Drag to reorder">≡</div>
+      <div style="flex:1;min-width:0">
+        <div class="ex-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+          ${ex.name}${progressionLabel(ex.name)}
+          <button class="howto-btn" onclick="toggleHowTo(${ei})" aria-label="How to">how to</button>
+          ${ssBtn}
+        </div>
+        ${pr?`<div class="pr-note">PR: ${pr.weight?pr.weight+'lbs × ':''}${pr.reps} reps</div>`:''}
+      </div>
+      <button class="ex-remove" onclick="removeExercise(${ei})" aria-label="Remove">✕</button>
+    </div>
+    <div class="howto-bubble" id="howto-${ei}">${getHowTo(ex.name)}</div>
+    <div class="ex-body">
+      ${ex.sets.map((s,si)=>renderSetRow(ei,si,s,isBW)).join('')}
+      <button class="btn btn-outline btn-sm btn-full" style="margin-top:6px" onclick="addSet(${ei})">+ Add set</button>
+      <div class="rpe-wrap" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div class="rpe-label-row"><div class="rpe-lbl">How did this exercise feel?</div></div>
+        <div class="rpe-btns">
+          ${[1,2,3,4,5].map(r=>`<button class="rpe-btn ${ex.rpe===r?'selected-'+r:''}" onclick="setExRPE(${ei},${r})"><span class="rpe-num">${r}</span><span class="rpe-emoji">${RPE_EMOJI[r]}</span></button>`).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted);padding:0 2px"><span>too easy</span><span>max effort</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSetRow(ei,si,s,isBW){
+  const done=s.done||false;
+  const isHiit=currentExercises[ei]&&currentExercises[ei].isHiit;
+
+  if(isHiit){
+    // HIIT set: duration stepper + inline countdown timer
+    const dur=s.duration||40;
+    const rem=s.remaining!=null?s.remaining:dur;
+    const state=s.timerState||'idle'; // idle | running | paused | done
+    const dispTime=String(rem).padStart(2,'0');
+    const btnLabel=state==='running'?'⏸ Pause':state==='paused'?'▶ Resume':state==='done'?'↺ Again':'▶ Start';
+    const dispClass=state==='running'?'running':state==='done'?'done-t':'';
+    const btnClass=state==='running'?'running':state==='done'?'done-t':'';
+    return `<div class="set-row${done?' done-row':''}" id="setrow-${ei}-${si}">
+      <div class="set-row-main">
+        <button class="set-radio${done?' done':''}" id="checkbtn-${ei}-${si}" onclick="checkSet(${ei},${si})" aria-label="Log set ${si+1}"></button>
+        <span class="set-num-badge">Set ${si+1}</span>
+        <div class="set-timer-wrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="stepper" style="height:44px;width:150px;flex-shrink:0">
+              <button class="stepper-btn" onclick="stepHiitDur(${ei},${si},-5)">−</button>
+              <div class="stepper-val" style="font-size:15px" id="dur-${ei}-${si}">${dur}</div>
+              <button class="stepper-btn" onclick="stepHiitDur(${ei},${si},5)">+</button>
+            </div>
+            <div style="font-size:10px;color:var(--muted);flex-shrink:0">sec</div>
+          </div>
+          <div class="set-timer-display ${dispClass}" id="timerdisp-${ei}-${si}">${dispTime}</div>
+          <button class="timer-start-btn ${btnClass}" id="timerbtn-${ei}-${si}" onclick="toggleSetTimer(${ei},${si})">${btnLabel}</button>
+        </div>
+        <button class="remove-set-btn" style="min-width:32px;font-size:16px" onclick="removeSet(${ei},${si})">✕</button>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="set-row${done?' done-row':''}" id="setrow-${ei}-${si}">
+    <div class="set-row-main">
+      <button class="set-radio${done?' done':''}" id="checkbtn-${ei}-${si}" onclick="checkSet(${ei},${si})" aria-label="Log set ${si+1}"></button>
+      <span class="set-num-badge">Set ${si+1}</span>
+      <div class="set-inputs" style="flex:1;margin:0">
+        ${isBW
+          ?`<div style="font-size:12px;color:var(--muted);padding:8px 0">Bodyweight</div>`
+          :`<div class="stepper" style="height:44px"><button class="stepper-btn" onclick="stepSet(${ei},${si},'weight',-5)">−</button><div class="stepper-val" style="font-size:15px" id="w-${ei}-${si}">${s.weight||0}</div><div style="font-size:10px;color:var(--muted);padding-right:6px">lbs</div><button class="stepper-btn" onclick="stepSet(${ei},${si},'weight',5)">+</button></div>`
+        }
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="stepper" style="height:44px;width:120px"><button class="stepper-btn" onclick="stepSet(${ei},${si},'reps',-1)">−</button><div class="stepper-val" style="font-size:15px" id="r-${ei}-${si}">${s.reps||0}</div><div style="font-size:10px;color:var(--muted);padding-right:6px">reps</div><button class="stepper-btn" onclick="stepSet(${ei},${si},'reps',1)">+</button></div>
+        <button class="remove-set-btn" style="min-width:32px;font-size:16px" onclick="removeSet(${ei},${si})">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function stepSet(ei,si,field,delta){
+  const s=currentExercises[ei].sets[si];
+  let val=parseFloat(s[field]||0)+delta;
+  if(field==='weight') val=Math.max(0,roundTo5(val));
+  if(field==='reps') val=Math.max(0,val);
+  s[field]=val;
+  // update just the number to avoid re-render flicker
+  const el=document.getElementById(field==='weight'?`w-${ei}-${si}`:`r-${ei}-${si}`);
+  if(el) el.textContent=val;
+}
+
+function setExRPE(ei,val){
+  currentExercises[ei].rpe=val;
+  // update just the RPE buttons for this exercise block
+  const blocks=document.querySelectorAll('.exercise-block');
+  const block=blocks[ei];
+  if(block){
+    block.querySelectorAll('.rpe-wrap .rpe-btn').forEach((btn,idx)=>{
+      btn.className='rpe-btn'+(val===(idx+1)?` selected-${idx+1}`:'');
+    });
+  }
+}
+
+function addSet(ei){
+  const ex=currentExercises[ei];
+  const lastSet=ex.sets[ex.sets.length-1];
+  if(ex.isHiit){
+    ex.sets.push({duration:lastSet.duration||40,done:false,timerState:'idle',remaining:lastSet.duration||40});
+  } else {
+    ex.sets.push({weight:lastSet.weight,reps:lastSet.reps,rpe:0,done:false});
+  }
+  renderExercises();
+}
+
+function removeSet(ei,si){
+  if(currentExercises[ei].sets.length<=1){alert('Need at least one set.');return;}
+  currentExercises[ei].sets.splice(si,1);
+  renderExercises();
+}
+
+function removeExercise(ei){currentExercises.splice(ei,1);renderExercises()}
+
+function addExercise(name){
+  currentExercises.push({name,sets:getSuggestedSets(name),rpe:0,supersetId:null});
+  renderExercises();
+  closeModal('ex-modal');
+}
+
+function saveWorkout(){
+  if(!currentExercises.length){alert('Add at least one exercise.');return}
+  const log={date:dateStr(new Date()),type:'strength',exercises:currentExercises.map(e=>({name:e.name,rpe:e.rpe||0,sets:e.sets.map(s=>({weight:s.weight,reps:s.reps,rpe:s.rpe||0}))}))};
+  log.exercises.forEach(ex=>{
+    ex.sets.forEach(s=>{
+      const w=parseFloat(s.weight||0),r=parseFloat(s.reps||0);
+      if(r>0){
+        const pr=db.prs[ex.name];
+        if(!pr||(w>0&&w>pr.weight)||(w===pr.weight&&r>pr.reps)||(w===0&&r>pr.reps))
+          db.prs[ex.name]={weight:w||'',reps:r};
+      }
+    });
+  });
+  db.logs.push(log);save();
+  clearAllSetTimers();currentExercises=[];currentRoutineType='strength';document.getElementById('log-tab-label').textContent='Strength — check off each set as you go';renderExercises();
+  showScreen('home');
+}
+
+// ─── EXERCISE MODAL ───────────────────────────────────────────
+function openExModal(){addingForRoutine=false;openExModalCore()}
+function openExModalForRoutine(){addingForRoutine=true;openExModalCore()}
+function openExModalCore(){document.getElementById('ex-search').value='';filterExercises();document.getElementById('ex-modal').classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+function exOptionClick(el){
+  const name=el.dataset.name;
+  const fn=el.dataset.fn;
+  if(fn==='addExToRoutine') addExToRoutine(name);
+  else addExercise(name);
+}
+
+function filterExercises(){
+  const q=document.getElementById('ex-search').value.toLowerCase();
+  const filtered=EXERCISES.filter(e=>e.name.toLowerCase().includes(q)||e.cat.toLowerCase().includes(q));
+  const isCustom=q&&!EXERCISES.find(e=>e.name.toLowerCase()===q);
+  const all=isCustom?[...filtered,{name:document.getElementById('ex-search').value,cat:'Custom',type:'custom'}]:filtered;
+  const cats=[...new Set(all.map(e=>e.cat))];
+  document.getElementById('ex-list').innerHTML=cats.map(cat=>`
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px">${cat}</div>
+    ${all.filter(e=>e.cat===cat).map((e,_,__)=>{
+      const safeName=e.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      const fn=addingForRoutine?'addExToRoutine':'addExercise';
+      return `<div class="ex-option" data-name="${safeName}" data-fn="${fn}" onclick="exOptionClick(this)">
+        <span class="ex-opt-name">${e.name}</span>
+        <span class="ex-opt-type">${e.type}</span>
+      </div>`;
+    }).join('')}`).join('');
+}
+
+// ─── HIIT TAB ─────────────────────────────────────────────────
+function selectActivity(btn,name){
+  document.querySelectorAll('.activity-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  hiitActivity=name;
+  const custom=document.getElementById('hiit-activity-custom');
+  custom.style.display=name==='Other'?'block':'none';
+  if(name==='Other') custom.focus();
+}
+
+function selectHiitRPE(btn,val){
+  hiitRPE=val;
+  document.querySelectorAll('#tab-hiit .rpe-btn').forEach((b,i)=>{b.className='rpe-btn'+(val===(i+1)?` selected-${i+1}`:'')});
+}
+
+function stepHiit(field,delta){
+  hiitVals[field]=Math.max(field==='duration'?5:0, hiitVals[field]+delta);
+  document.getElementById('hiit-'+field+'-val').textContent=hiitVals[field];
+  if(field==='duration'){
+    const manual=document.getElementById('hiit-duration-manual');
+    if(manual) manual.value='';
+  }
+}
+
+function hiitManualDuration(val){
+  const n=parseInt(val);
+  if(n>0){
+    hiitVals.duration=n;
+    document.getElementById('hiit-duration-val').textContent=n;
+  }
+}
+
+function saveHIIT(){
+  const act=hiitActivity==='Other'?(document.getElementById('hiit-activity-custom').value.trim()||'Other'):hiitActivity;
+  if(!act){alert('Pick an activity first.');return}
+  if(!hiitVals.duration||hiitVals.duration<1){alert('Enter a duration.');return}
+  db.logs.push({date:dateStr(new Date()),type:'other',activity:act,duration:hiitVals.duration,rpe:hiitRPE});
+  save();
+  // reset
+  hiitActivity='';hiitRPE=0;hiitVals.duration=30;
+  document.querySelectorAll('.activity-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('#tab-hiit .rpe-btn').forEach(b=>b.className='rpe-btn');
+  document.getElementById('hiit-duration-val').textContent=30;
+  document.getElementById('hiit-duration-manual').value='';
+  document.getElementById('hiit-activity-custom').style.display='none';
+  document.getElementById('hiit-activity-custom').value='';
+  showScreen('home');
+}
+
+// ─── ROUTINES ─────────────────────────────────────────────────
+const BUILTINS=[
+  {name:'Push Day',type:'strength',exercises:['Barbell bench press','Dumbbell bench press','Barbell overhead press','Dumbbell lateral raises','Tricep rope pushdown','Overhead tricep rope extension']},
+  {name:'Pull Day',type:'strength',exercises:['Barbell deadlift','Pull-ups','Barbell bent-over row','Lat pulldown','Seated cable row','Dumbbell curl']},
+  {name:'Leg Day',type:'strength',exercises:['Barbell back squat','Barbell Romanian deadlift','Dumbbell lunges','Bulgarian split squat','Dumbbell calf raises','Plank']},
+  {name:'Upper Body — Dumbbell Focus',type:'strength',exercises:['Dumbbell bench press','Dumbbell row','Dumbbell shoulder press','Dumbbell lateral raises','Dumbbell curl','Hammer curl']},
+  {name:'Arms & Shoulders',type:'strength',exercises:['Barbell curl','Dumbbell curl','Hammer curl','Tricep rope pushdown','Overhead tricep rope extension','Barbell skull crushers','Cable face pulls','Dumbbell lateral raises']},
+  {name:'Bodyweight Strength + HIIT',type:'hiit',exercises:['Pull-ups','Push-ups','Hanging knee raise','Plank','Burpees','Mountain climbers','Jump squats','Bulgarian split squat']},
+];
+
+function lastDoneDate(r){
+  // Find the most recent log that matches this routine by exercise overlap
+  const routineExs=new Set(r.exercises);
+  for(let i=db.logs.length-1;i>=0;i--){
+    const log=db.logs[i];
+    if(log.type!=='strength') continue;
+    const logExs=(log.exercises||[]).map(e=>e.name);
+    // Match if at least half the routine exercises appear in the log
+    const overlap=logExs.filter(n=>routineExs.has(n)).length;
+    if(overlap>=Math.ceil(r.exercises.length/2)) return log.date;
+  }
+  return null;
+}
+
+function renderRoutines(){
+  const today=dateStr(new Date());
+  const all=[...BUILTINS,...db.routines];
+
+  // Attach last-done date and original index to each routine
+  const withMeta=all.map((r,i)=>({r,i,last:lastDoneDate(r)}));
+
+  // Sort: done today → bottom; rest sorted by last done ascending (null = never = top)
+  withMeta.sort((a,b)=>{
+    const aTod=a.last===today;
+    const bTod=b.last===today;
+    if(aTod!==bTod) return aTod?1:-1; // today → sink
+    if(!a.last&&!b.last) return a.i-b.i; // both never done → keep original order
+    if(!a.last) return -1; // never done → float up
+    if(!b.last) return 1;
+    return a.last<b.last?-1:1; // oldest done → float up
+  });
+
+  document.getElementById('routines-list').innerHTML=withMeta.map(({r,i,last})=>{
+    const doneToday=last===today;
+    const lastLabel=last
+      ?`Last done: ${formatDate(last)}${doneToday?' · done today ✓':''}`
+      :'Never done';
+    const labelColor=doneToday?'color:var(--accent)':'color:var(--muted)';
+    return `<div class="routine-card" style="${doneToday?'opacity:0.6':''}">
+      <div class="r-header">
+        <div>
+          <h3>${r.name}</h3>
+          <div class="r-meta">${r.exercises.length} exercises · <span class="tag ${r.type}">${r.type}</span></div>
+          <div style="font-size:10px;margin-top:4px;${labelColor}">${lastLabel}</div>
+        </div>
+        ${i>=BUILTINS.length?`<button class="btn btn-danger btn-sm" onclick="deleteRoutine(${i-BUILTINS.length})">Delete</button>`:''}
+      </div>
+      <div class="r-body">
+        <div style="margin-bottom:12px">${r.exercises.map(e=>`<span class="ex-pill">${e}</span>`).join('')}</div>
+        <button class="start-routine-btn" onclick="startRoutine(${i})">${doneToday?'Do again →':'Start this routine →'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startRoutine(i){
+  const all=[...BUILTINS,...db.routines];
+  const r=all[i];
+  currentRoutineType=r.type;
+  if(r.type==='hiit'){
+    // Build HIIT exercises: each set has duration (sec) instead of reps
+    currentExercises=r.exercises.map(name=>({
+      name,
+      rpe:0,
+      supersetId:null,
+      isHiit:true,
+      sets:getSuggestedHiitSets(name)
+    }));
+  } else {
+    currentExercises=r.exercises.map(name=>({name,sets:getSuggestedSets(name),rpe:0,supersetId:null}));
+  }
+  renderExercises();
+  switchTab(r.type==='hiit'?'hiit-routine':'strength');
+  document.getElementById('log-tab-label').textContent=
+    r.type==='hiit'?'HIIT — tap ▶ to start each set timer':'Strength — check off each set as you go';
+  showScreen('log-screen');
+}
+
+function openRoutineModal(){
+  currentRoutineExercises=[];
+  document.getElementById('r-name').value='';
+  document.getElementById('r-exercises-container').innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:8px">No exercises added</div>';
+  document.getElementById('routine-modal').classList.add('open');
+}
+
+function addExToRoutine(name){
+  currentRoutineExercises.push(name);
+  document.getElementById('r-exercises-container').innerHTML=currentRoutineExercises.map((n,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);min-height:48px">
+      <span style="font-size:14px">${n}</span>
+      <button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center" onclick="removeRoutineEx(${i})">✕</button>
+    </div>`).join('');
+  closeModal('ex-modal');
+}
+
+function removeRoutineEx(i){
+  currentRoutineExercises.splice(i,1);
+  document.getElementById('r-exercises-container').innerHTML=currentRoutineExercises.length
+    ?currentRoutineExercises.map((n,j)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);min-height:48px">
+        <span style="font-size:14px">${n}</span>
+        <button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center" onclick="removeRoutineEx(${j})">✕</button>
+      </div>`).join('')
+    :'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">No exercises added</div>';
+}
+
+function saveRoutine(){
+  const name=document.getElementById('r-name').value.trim();
+  if(!name){alert('Enter a routine name.');return}
+  if(!currentRoutineExercises.length){alert('Add at least one exercise.');return}
+  db.routines.push({name,type:document.getElementById('r-type').value,exercises:currentRoutineExercises});
+  save();closeModal('routine-modal');renderRoutines();
+}
+
+function deleteRoutine(i){if(confirm('Delete this routine?')){db.routines.splice(i,1);save();renderRoutines()}}
+
+
+// ─── HIIT SET TIMERS ─────────────────────────────────────────
+// Each set tracks its own interval independently
+const setIntervals={};
+
+function stepHiitDur(ei,si,delta){
+  const s=currentExercises[ei].sets[si];
+  s.duration=Math.max(5,((s.duration||40)+delta));
+  if(s.timerState==='idle') s.remaining=s.duration;
+  // update just the dur display and reset display if idle
+  const durEl=document.getElementById('dur-'+ei+'-'+si);
+  const dispEl=document.getElementById('timerdisp-'+ei+'-'+si);
+  if(durEl) durEl.textContent=s.duration;
+  if(dispEl&&s.timerState==='idle') dispEl.textContent=String(s.remaining).padStart(2,'0');
+}
+
+function toggleSetTimer(ei,si){
+  const s=currentExercises[ei].sets[si];
+  const key=ei+'-'+si;
+  if(s.timerState==='idle'||s.timerState==='done'){
+    // Start fresh
+    s.remaining=s.duration;
+    s.timerState='running';
+    s.done=false;
+    updateSetTimerUI(ei,si);
+    setIntervals[key]=setInterval(()=>tickSetTimer(ei,si),1000);
+  } else if(s.timerState==='running'){
+    clearInterval(setIntervals[key]);
+    s.timerState='paused';
+    updateSetTimerUI(ei,si);
+  } else if(s.timerState==='paused'){
+    s.timerState='running';
+    setIntervals[key]=setInterval(()=>tickSetTimer(ei,si),1000);
+    updateSetTimerUI(ei,si);
+  }
+}
+
+function tickSetTimer(ei,si){
+  const s=currentExercises[ei]&&currentExercises[ei].sets[si];
+  if(!s) return;
+  const key=ei+'-'+si;
+  s.remaining--;
+  if(s.remaining<=0){
+    clearInterval(setIntervals[key]);
+    s.remaining=0;
+    s.timerState='done';
+    s.done=true;
+    updateSetTimerUI(ei,si);
+    // Auto-check the radio
+    const radio=document.getElementById('checkbtn-'+ei+'-'+si);
+    const row=document.getElementById('setrow-'+ei+'-'+si);
+    if(radio) radio.className='set-radio done';
+    if(row) row.className='set-row done-row';
+    updateSaveBtn();
+    return;
+  }
+  updateSetTimerUI(ei,si);
+}
+
+function updateSetTimerUI(ei,si){
+  const s=currentExercises[ei].sets[si];
+  const disp=document.getElementById('timerdisp-'+ei+'-'+si);
+  const btn=document.getElementById('timerbtn-'+ei+'-'+si);
+  if(!disp||!btn) return;
+  disp.textContent=String(s.remaining).padStart(2,'0');
+  if(s.timerState==='running'){
+    disp.className='set-timer-display running';
+    btn.className='timer-start-btn running';
+    btn.textContent='⏸ Pause';
+  } else if(s.timerState==='paused'){
+    disp.className='set-timer-display';
+    btn.className='timer-start-btn';
+    btn.textContent='▶ Resume';
+  } else if(s.timerState==='done'){
+    disp.className='set-timer-display done-t';
+    btn.className='timer-start-btn done-t';
+    btn.textContent='↺ Again';
+  }
+}
+
+// Clear all set timers when saving or navigating away
+function clearAllSetTimers(){
+  Object.keys(setIntervals).forEach(k=>{clearInterval(setIntervals[k]);delete setIntervals[k];});
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+renderHome();
+renderExercises();
+</script>
+
+</body>
+</html>
